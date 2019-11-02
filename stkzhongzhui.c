@@ -4,7 +4,6 @@
 struct stack * init(struct stack*);
 void push(struct stack*, char ch);
 char pop(struct stack*);
-
 void pour(struct stack* stk1, struct stack * stk2);
 void analy(struct stack* stk1, struct stack* stk2, char ch);//对读到的字符进行分析并归位
 int ishigh(char ch1, char ch2);//比较运算符高低

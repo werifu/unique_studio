@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include<malloc.h>
 
-void init(struct stack *stk, int data);
+void init(struct stack *stk);
 int pop(struct stack * stk);
 void push(struct stack *stk, int data);
 void d(struct stack * stk);
@@ -19,11 +19,11 @@ struct stack
     struct node *p;
 };
 
-void init(struct stack * stk, int data)
+void init(struct stack * stk)
 {
     struct node * cur;
     cur = (struct node *)malloc(sizeof(struct node));
-    cur->data = data;
+    cur->data = 0;
     cur->next = NULL;
     stk->length = 1;
     stk->p = cur;
@@ -48,6 +48,7 @@ int pop(struct stack *stk)
     stk->p = cur->next;
     free(cur);
     stk->length--;
+    printf("%d\n", x);
     return x;
 }
 
@@ -62,12 +63,15 @@ void d(struct stack * stk)
 int main()
 {
     struct stack * stk;
+    stk = (struct stack*)malloc(sizeof(struct stack));
     int data = 1;
-    init(stk, data);
-    push(stk, 114514);
+    init(stk);
     push(stk, 12450);
-    printf("%d\n", pop(stk));
-    d(stk);
+    push(stk, 114514);
+    push(stk,220);
+    pop(stk);
+    pop(stk);
+    pop(stk);
     return 0;
 }
 
