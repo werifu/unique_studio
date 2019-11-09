@@ -22,6 +22,7 @@ struct header {
     unsigned char ad :1; 
     unsigned char z :1; //保留值
     unsigned char ra :1; // 表示可用递归
+    
     unsigned short q_count; // 表示查询问题区域节的数量 
     unsigned short ans_count; // 表示回答区域的数量
     unsigned short auth_count; // 表示授权区域的数量
@@ -41,17 +42,16 @@ typedef struct
 }query;
 /*---------------上边是对报头和询问的定义------------------*/
 
-//编译制导命令
-//#pragma pack(push, 1)//保存对齐状态，设定为1字节对齐
+
 struct r_data {
     unsigned short type; //表示资源记录的类型
     unsigned short _class; //类
     unsigned int ttl; //表示资源记录可以缓存的时间
     unsigned short data_len; //数据长度
 };
-//#pragma pack(pop) //恢复对齐状态
 
-//
+
+//回答的记录
 struct res_record{
     unsigned char* name;
     struct r_data* r_data;
@@ -109,15 +109,22 @@ void change_format(unsigned char* dns, unsigned char* host)
 
 int main(int argc, char* argv[])
  {
-     unsigned char* hostname, *servername;
-    if (argc == 2)
+    unsigned char* hostname, *servername;
+    if (!strcmp(argv[1],"--help") || !strcmp(argv[1], "-h"))                  //mydig --help
     {
-        hostname = argv[1];
-        requestDNS(hostname, (unsigned char*)"8.8.8.8");
+        printf("mydig 说明书：\n");
+        printf("mydig 域名:   返回ipv4地址\nmydig 域名 @dns服务器：指定dns服务器来查询");
+        return 0;
     }
-    else if (argv[2][0] == '@')
+    if (argc == 2)                                                  //mydig  domain
     {
         hostname = argv[1];
+        requestDNS(hostname, (unsigned char*)"8.8.8.8");//默认用8.8.8.8
+    }
+    else if (argv[2][0] == '@')                         //mydig   domain  @dns_server_ip
+    {
+        hostname = argv[1];
+        //把'@'删掉
         unsigned char* de_at;
         int m = 0;
         do
@@ -125,8 +132,9 @@ int main(int argc, char* argv[])
             de_at[m] = argv[2][m+1];
             m++;
         } while (argv[2][m+1] != '\0');
-        
-        servername = de_at;//把'@'删掉
+        servername = de_at;
+        //--------------
+
         requestDNS(hostname, servername);
     }
 
@@ -178,7 +186,8 @@ void requestDNS(unsigned char* hostname, unsigned char* servername)
     //缓冲区长度
     int buff_length = (sizeof(struct header)+strlen((const char*)qname)+sizeof(struct question)+1);
     //发送udp包
-    if (sendto(dnsSock,buff, buff_length, 0, (struct sockaddr*) &dnsaddr, sizeof(dnsaddr)) < 0) {
+    if (sendto(dnsSock,buff, buff_length, 0, (struct sockaddr*) &dnsaddr, sizeof(dnsaddr)) < 0) 
+    {
        printf("sendto failed\n");
     }
     printf("sendto successfully\n");
@@ -193,16 +202,8 @@ void requestDNS(unsigned char* hostname, unsigned char* servername)
 
     //将reader指向接收报文的回答区域 
     unsigned char *reader = &buff[buff_length];
-    /*
-    printf("\n\n响应报文包含: ");
-    printf("\n %d个问题", ntohs(dns->q_count));
-    printf("\n %d个回答", ntohs(dns->ans_count));
-    printf("\n %d个授权服务", ntohs(dns->auth_count));
-    printf("\n %d个附加记录\n\n", ntohs(dns->add_count));
-*/
 
-
-    /*下面开始解析受到的回答*///下边算是抄的。（理解不能//对怎么解析真的没有思路
+    /*下面开始解析受到的回答*/
 
     struct res_record answers[20], auth[20], addit[20];//回答区域、授权区域、附加区域中的资源数据字段
 
@@ -212,12 +213,12 @@ void requestDNS(unsigned char* hostname, unsigned char* servername)
     if (ntohs(answers[i].r_data->type) == 1) //判断资源类型是否为IPv4地址
     {
         answers[i].record_data = (unsigned char*) malloc(ntohs(answers[i].r_data->data_len));//资源数据
-    for (int j = 0; j < ntohs(answers[i].r_data->data_len); j++) 
-    {
-        answers[i].record_data[j] = reader[j];
-    }
-    answers[i].record_data[ntohs(answers[i].r_data->data_len)] = '\0';
-    reader = reader + ntohs(answers[i].r_data->data_len);
+        for (int j = 0; j < ntohs(answers[i].r_data->data_len); j++) 
+        {
+            answers[i].record_data[j] = reader[j];
+        }
+        answers[i].record_data[ntohs(answers[i].r_data->data_len)] = '\0';
+        reader = reader + ntohs(answers[i].r_data->data_len);
     }
 
 
