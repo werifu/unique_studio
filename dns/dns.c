@@ -190,12 +190,10 @@ void requestDNS(unsigned char* hostname, unsigned char* servername)
     {
        printf("sendto failed\n");
     }
-    printf("sendto successfully\n");
 
     if (recvfrom(dnsSock, (char*)buff, 65535, 0, (struct sockaddr*)&dnsaddr, (socklen_t*)&i +1 )<0){
         perror("recvfrom failed\n");
     }
-    printf("receive successfully\n");
     //reader指向回答部分
 
     dns = (struct header*) buff;
