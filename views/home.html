@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{.name}}</title>
+</head>
+<body>
+{{if .islogin}}
+<h1 style="text-align: center">个人主页</h1>
+{{else}}
+<ul>
+    <li><a href="/login">登陆</a> </li>
+    <li><a href="/register">注册</a> </li>
+</ul>
+{{end}}
+</body>
+
+</html>
